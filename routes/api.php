@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DatabaseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Session\UserController;
@@ -14,4 +15,9 @@ Route::prefix("auth")->group(function(){
         Route::post("/login", [UserController::class, "store"]);
         Route::post('/logout', [UserController::class, "destroy"]);
     });
+});
+
+Route::middleware("auth")->group(function(){
+    Route::get("/databases", [DatabaseController::class, "show"]);
+    Route::post("/databases", [DatabaseController::class, "store"]);
 });

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string("document_id")->unique();
             $table->foreignId("user_id")->constrained();
-            $table->string("name");
+            $table->string("name")->unique();
             $table->timestamps();
         });
     }
