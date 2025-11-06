@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\DatabaseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -20,4 +21,6 @@ Route::prefix("auth")->group(function(){
 Route::middleware("auth")->group(function(){
     Route::get("/databases", [DatabaseController::class, "show"]);
     Route::post("/databases", [DatabaseController::class, "store"]);
+
+    Route::post("/databases/{database_id}/collections", [CollectionController::class, "store"]);
 });
