@@ -22,5 +22,6 @@ Route::middleware("auth")->group(function(){
     Route::get("/databases", [DatabaseController::class, "show"]);
     Route::post("/databases", [DatabaseController::class, "store"]);
 
+    Route::get("/databases/{database_id}/collections", [CollectionController::class, "show"]);
     Route::post("/databases/{database_id}/collections", [CollectionController::class, "store"]);
 });

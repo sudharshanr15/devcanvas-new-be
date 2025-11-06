@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\ApiResponse;
 use App\Helpers\HttpResponseCode;
+use App\Models\Collection;
 use App\Models\Database;
 use Exception;
 use Illuminate\Database\Schema\Blueprint;
@@ -15,6 +16,19 @@ use Illuminate\Support\Facades\Schema;
 class CollectionController extends Controller
 {
     use ApiResponse;
+
+    public function show(Request $request, string $database_id){
+        $user = auth()->user();
+        $database = $user->databases->where("document_id", $database_id)->first();
+
+        if(!$database){
+            return $this->errorResponse("Database not found", null, HttpResponseCode::NOT_FOUND);
+        }
+
+        $collections = $database->collections;
+
+        return $this->successResponse($collections->toArray());
+    }
 
     public function store(Request $request, string $database_id){
         $user = auth()->user();
@@ -37,7 +51,7 @@ class CollectionController extends Controller
         $attributes = [
             "name" => $validation["name"],
             "schema" => json_encode($validation),
-            "database_id" => $database_id,
+            "database_id" => $database->id,
             "document_id" => md5($user->id . time())
         ];
 
@@ -81,7 +95,7 @@ class CollectionController extends Controller
                         'boolean' => $table->boolean($columnName),
                         'float' => $table->float($columnName),
                         'date' => $table->date($columnName),
-                        'timestamp' => $table->timestamps(),
+                        'timestamp' => $table->timestampsTz(),
                         'serial' => $table->id(),
                         default => null,
                     };
@@ -100,6 +114,8 @@ class CollectionController extends Controller
                     }
                 }
             });
+
+            Collection::create($attributes);
         }catch(Exception $e){
             return $this->errorResponse("Unable to create collection", $e->getMessage());
         }
