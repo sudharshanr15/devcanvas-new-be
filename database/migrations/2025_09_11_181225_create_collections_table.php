@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('collections', function (Blueprint $table) {
             $table->id();
             $table->string("document_id")->unique();
-            $table->foreignId("database_id")->constrained();
+            $table->foreignId("database_id")->constrained()->onDelete('cascade');
             $table->string("name");
             $table->longText("schema");
             $table->timestamps();

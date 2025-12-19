@@ -122,4 +122,36 @@ class CollectionController extends Controller
 
         return $this->successResponse();
     }
+
+    public function destroy($database_id, $collection_id){
+        $user = auth()->user();
+        $database = $user->databases->where("document_id", $database_id)->first();
+
+        if(!$database){
+            return $this->errorResponse("Database not found", null, HttpResponseCode::NOT_FOUND);
+        }
+
+        $collection = $database->collections->where("document_id", $collection_id)->first();
+
+        if(!$collection){
+            return $this->errorResponse("Collection not found", null, HttpResponseCode::NOT_FOUND);
+        }
+
+        $override = [
+            'database' => $database->name,
+        ];
+        $config = array_merge(Config::get("database.connections.pgsql"), $override);
+        Config::set("database.connections.user_connection", $config);
+
+        $db = DB::connection();
+
+        try{
+            Schema::connection("user_connection")->dropIfExists($collection->name);
+            $collection->delete();
+        }catch(Exception $e){
+            return $this->errorResponse("Unable to delete collection", $e->getMessage());
+        }
+
+        return $this->successResponse();
+    }
 }

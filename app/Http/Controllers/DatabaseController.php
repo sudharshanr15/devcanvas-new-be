@@ -64,4 +64,28 @@ class DatabaseController extends Controller
 
         return ;
     }
+
+    public function destroy($database_id){
+        $user = auth()->user();
+
+        $database = Database::where("document_id", $database_id)->where("user_id", $user->id)->first();
+
+        if(!$database){
+            return $this->errorResponse("Database not found", null, HttpResponseCode::NOT_FOUND);
+        }
+
+        $database_name = $database->name;
+        $db = DB::connection();
+
+        try{
+            $db->getPdo();
+            $db->statement("DROP DATABASE " . $database_name);
+        }catch(Exception $e){
+            return $this->errorResponse("Unable to delete database", null, HttpResponseCode::INTERNAL_SERVER_ERROR);
+        }
+
+        $database->delete();
+
+        return $this->successResponse(null, "Database deleted successfully");
+    }
 }
