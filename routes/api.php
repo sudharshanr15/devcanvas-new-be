@@ -25,5 +25,7 @@ Route::middleware("auth")->group(function(){
 
     Route::get("/databases/{database_id}/collections", [CollectionController::class, "show"]);
     Route::post("/databases/{database_id}/collections", [CollectionController::class, "store"]);
+
+    Route::get("/databases/{database_id}/collections/{collection_id}/schema", [CollectionController::class, "index"]);
     Route::post("/databases/{database_id}/collections/{collection_id}/delete", [CollectionController::class, "destroy"]);
 });

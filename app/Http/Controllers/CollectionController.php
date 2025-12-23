@@ -17,6 +17,23 @@ class CollectionController extends Controller
 {
     use ApiResponse;
 
+    public function index(Request $request, string $database_id, string $collection_id){
+        $user = auth()->user();
+        $database = $user->databases->where("document_id", $database_id)->first();
+
+        if(!$database){
+            return $this->errorResponse("Database not found", null, HttpResponseCode::NOT_FOUND);
+        }
+
+        $collection = $database->collections->where("document_id", $collection_id)->first();
+
+        if(!$collection){
+            return $this->errorResponse("Collection not found", null, HttpResponseCode::NOT_FOUND);
+        }
+
+        return $this->successResponse($collection->toArray());
+    }
+
     public function show(Request $request, string $database_id){
         $user = auth()->user();
         $database = $user->databases->where("document_id", $database_id)->first();
@@ -42,7 +59,7 @@ class CollectionController extends Controller
             'name' => ['required', 'string', 'regex:/^[a-zA-Z_][a-zA-Z0-9_]*$/'],
             'columns' => ['required', 'array', 'min:1'],
             'columns.*.name' => ['required', 'string', 'regex:/^[a-zA-Z_][a-zA-Z0-9_]*$/'],
-            "columns.*.type" => ["required", "in:string,integer,text,boolean,float,date,datetime"],
+            "columns.*.type" => ["required", "in:string,number,text,boolean,float,date,datetime"],
             'columns.*.nullable' => ['boolean'],
             'columns.*.unique' => ['boolean'],
             'columns.*.default' => [],
