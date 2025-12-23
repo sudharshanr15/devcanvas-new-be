@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\DatabaseController;
+use App\Http\Controllers\Helpers\DocumentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Session\UserController;
@@ -28,4 +29,11 @@ Route::middleware("auth")->group(function(){
 
     Route::get("/databases/{database_id}/collections/{collection_id}/schema", [CollectionController::class, "index"]);
     Route::post("/databases/{database_id}/collections/{collection_id}/delete", [CollectionController::class, "destroy"]);
+});
+
+Route::prefix("v1")->group(function(): void{
+    Route::get("/databases/{database_id}/collections/{collection_id}/documents", [DocumentController::class, "index"]);
+    Route::post("/databases/{database_id}/collections/{collection_id}/documents", [DocumentController::class, "store"]);
+    Route::put("/databases/{database_id}/collections/{collection_id}/documents/{document_id}", [DocumentController::class, "update"]);
+    Route::delete("/databases/{database_id}/collections/{collection_id}/documents/{document_id}", [DocumentController::class, "destroy"]);
 });
