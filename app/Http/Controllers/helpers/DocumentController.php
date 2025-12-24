@@ -38,6 +38,37 @@ class DocumentController extends Controller{
         }
     }
 
+    public function show(string $database_id, string $collection_id, string $id){
+        $database = Database::where("document_id", $database_id)->first();
+        if(!$database){
+            return $this->errorResponse("Database not found", null, 404);
+        }
+
+        $collection = $database->collections->where("document_id", $collection_id)->first();
+        if(!$collection){
+            return $this->errorResponse("Collection not found", null, 404);
+        }
+
+        $override = [
+            'database' => $database->name,
+        ];
+        $config = array_merge(Config::get("database.connections.pgsql"), $override);
+        Config::set("database.connections.user_connection", $config);
+
+        $db = DB::connection("user_connection");
+
+        try{
+            $document = $db->table($collection->name)->where('id', $id)->first();
+            if($document){
+                return $this->successResponse($document);
+            }else{
+                return $this->errorResponse("Document not found", null, 404);
+            }
+        }catch(\Exception $e){
+            return $this->errorResponse("Error fetching document: " . $e->getMessage(), null, 500);
+        }
+    }
+
     public function store(string $database_id, string $collection_id){
         $database = Database::where("document_id", $database_id)->first();
         if(!$database){

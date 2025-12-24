@@ -33,6 +33,7 @@ Route::middleware("auth")->group(function(){
 
 Route::prefix("v1")->group(function(): void{
     Route::get("/databases/{database_id}/collections/{collection_id}/documents", [DocumentController::class, "index"]);
+    Route::get("/databases/{database_id}/collections/{collection_id}/documents/{id}", [DocumentController::class, "show"]);
     Route::post("/databases/{database_id}/collections/{collection_id}/documents", [DocumentController::class, "store"]);
     Route::put("/databases/{database_id}/collections/{collection_id}/documents/{document_id}", [DocumentController::class, "update"]);
     Route::delete("/databases/{database_id}/collections/{collection_id}/documents/{document_id}", [DocumentController::class, "destroy"]);
