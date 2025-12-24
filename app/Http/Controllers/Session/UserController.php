@@ -13,6 +13,15 @@ class UserController extends AbstractSessionController
 {
     use ApiResponse;
 
+    public function show()
+    {
+        $user = auth()->user();
+        if(!$user){
+            return $this->errorResponse("User not authenticated", null, HttpResponseCode::UNAUTHORIZED);
+        }
+        return $this->successResponse($user);
+    }
+
     public function store(Request $request)
     {
         $attributes = $request->validate([

@@ -14,6 +14,7 @@ Route::get('/user', function (Request $request) {
 
 Route::prefix("auth")->group(function(){
     Route::prefix("user")->group(function(){
+        Route::get("/", [UserController::class, "show"]);
         Route::post("/login", [UserController::class, "store"]);
         Route::post('/logout', [UserController::class, "destroy"]);
     });
