@@ -3,6 +3,7 @@
 use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\DatabaseController;
 use App\Http\Controllers\Helpers\DocumentController;
+use App\Http\Controllers\OpenApiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Session\UserController;
@@ -12,15 +13,17 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 
-Route::prefix("auth")->group(function(){
-    Route::prefix("user")->group(function(){
+Route::prefix("auth")->group(function () {
+    Route::prefix("user")->group(function () {
         Route::get("/", [UserController::class, "show"]);
         Route::post("/login", [UserController::class, "store"]);
         Route::post('/logout', [UserController::class, "destroy"]);
     });
 });
 
-Route::middleware("auth")->group(function(){
+Route::middleware("auth")->group(function () {
+    Route::get('/openapi', [OpenApiController::class, 'show']);
+
     Route::get("/databases", [DatabaseController::class, "show"]);
     Route::post("/databases", [DatabaseController::class, "store"]);
     Route::post("/databases/{database_id}/delete", [DatabaseController::class, "destroy"]);
@@ -32,7 +35,7 @@ Route::middleware("auth")->group(function(){
     Route::post("/databases/{database_id}/collections/{collection_id}/delete", [CollectionController::class, "destroy"]);
 });
 
-Route::prefix("v1")->group(function(): void{
+Route::prefix("v1")->group(function (): void {
     Route::get("/databases/{database_id}/collections/{collection_id}/documents", [DocumentController::class, "index"]);
     Route::get("/databases/{database_id}/collections/{collection_id}/documents/{id}", [DocumentController::class, "show"]);
     Route::post("/databases/{database_id}/collections/{collection_id}/documents", [DocumentController::class, "store"]);
