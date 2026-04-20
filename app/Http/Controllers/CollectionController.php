@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\ApiResponse;
+use App\Helpers\AuditLogHelper;
 use App\Helpers\HttpResponseCode;
 use App\Models\Collection;
 use App\Models\Database;
@@ -15,30 +16,32 @@ use Illuminate\Support\Facades\Schema;
 
 class CollectionController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, AuditLogHelper;
 
-    public function index(Request $request, string $database_id, string $collection_id){
+    public function index(Request $request, string $database_id, string $collection_id)
+    {
         $user = auth()->user();
         $database = $user->databases->where("document_id", $database_id)->first();
 
-        if(!$database){
+        if (!$database) {
             return $this->errorResponse("Database not found", null, HttpResponseCode::NOT_FOUND);
         }
 
         $collection = $database->collections->where("document_id", $collection_id)->first();
 
-        if(!$collection){
+        if (!$collection) {
             return $this->errorResponse("Collection not found", null, HttpResponseCode::NOT_FOUND);
         }
 
         return $this->successResponse($collection->toArray());
     }
 
-    public function show(Request $request, string $database_id){
+    public function show(Request $request, string $database_id)
+    {
         $user = auth()->user();
         $database = $user->databases->where("document_id", $database_id)->first();
 
-        if(!$database){
+        if (!$database) {
             return $this->errorResponse("Database not found", null, HttpResponseCode::NOT_FOUND);
         }
 
@@ -47,11 +50,12 @@ class CollectionController extends Controller
         return $this->successResponse($collections->toArray());
     }
 
-    public function store(Request $request, string $database_id){
+    public function store(Request $request, string $database_id)
+    {
         $user = auth()->user();
         $database = $user->databases->where("document_id", $database_id)->first();
 
-        if(!$database){
+        if (!$database) {
             return $this->errorResponse("Database not found", null, HttpResponseCode::NOT_FOUND);
         }
 
@@ -79,8 +83,8 @@ class CollectionController extends Controller
         Config::set("database.connections.user_connection", $config);
 
         $db = DB::connection();
-        
-        if(Schema::connection("user_connection")->hasTable($attributes['name'])){
+
+        if (Schema::connection("user_connection")->hasTable($attributes['name'])) {
             return $this->errorResponse("Table already exist", null, HttpResponseCode::BAD_REQUEST);
         }
 
@@ -97,7 +101,7 @@ class CollectionController extends Controller
 
         array_push($columns, ...$validation['columns']);
 
-        try{
+        try {
             Schema::connection("user_connection")->create($attributes["name"], function (Blueprint $table) use ($columns) {
                 foreach ($columns as $column) {
                     // Define column type
@@ -133,24 +137,26 @@ class CollectionController extends Controller
             });
 
             Collection::create($attributes);
-        }catch(Exception $e){
+            $this->logAudit('create', 'collection', $attributes['document_id'], $attributes['name'], null, request());
+        } catch (Exception $e) {
             return $this->errorResponse("Unable to create collection", $e->getMessage());
         }
 
         return $this->successResponse();
     }
 
-    public function destroy($database_id, $collection_id){
+    public function destroy($database_id, $collection_id)
+    {
         $user = auth()->user();
         $database = $user->databases->where("document_id", $database_id)->first();
 
-        if(!$database){
+        if (!$database) {
             return $this->errorResponse("Database not found", null, HttpResponseCode::NOT_FOUND);
         }
 
         $collection = $database->collections->where("document_id", $collection_id)->first();
 
-        if(!$collection){
+        if (!$collection) {
             return $this->errorResponse("Collection not found", null, HttpResponseCode::NOT_FOUND);
         }
 
@@ -162,10 +168,11 @@ class CollectionController extends Controller
 
         $db = DB::connection();
 
-        try{
+        try {
             Schema::connection("user_connection")->dropIfExists($collection->name);
             $collection->delete();
-        }catch(Exception $e){
+            $this->logAudit('delete', 'collection', $collection_id, $collection->name, null, request());
+        } catch (Exception $e) {
             return $this->errorResponse("Unable to delete collection", $e->getMessage());
         }
 

@@ -3,22 +3,25 @@
 namespace App\Http\Controllers\Helpers;
 
 use App\Helpers\ApiResponse;
+use App\Helpers\AuditLogHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Database;
 use Config;
 use DB;
 
-class DocumentController extends Controller{
-    use ApiResponse;
+class DocumentController extends Controller
+{
+    use ApiResponse, AuditLogHelper;
 
-    public function index(string $database_id, string $collection_id){
+    public function index(string $database_id, string $collection_id)
+    {
         $database = Database::where("document_id", $database_id)->first();
-        if(!$database){
+        if (!$database) {
             return $this->errorResponse("Database not found", null, 404);
         }
 
         $collection = $database->collections->where("document_id", $collection_id)->first();
-        if(!$collection){
+        if (!$collection) {
             return $this->errorResponse("Collection not found", null, 404);
         }
 
@@ -30,22 +33,23 @@ class DocumentController extends Controller{
 
         $db = DB::connection("user_connection");
 
-        try{
+        try {
             $documents = $db->table($collection->name)->get();
             return $this->successResponse($documents->toArray());
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             return $this->errorResponse("Error fetching documents: " . $e->getMessage(), null, 500);
         }
     }
 
-    public function show(string $database_id, string $collection_id, string $id){
+    public function show(string $database_id, string $collection_id, string $id)
+    {
         $database = Database::where("document_id", $database_id)->first();
-        if(!$database){
+        if (!$database) {
             return $this->errorResponse("Database not found", null, 404);
         }
 
         $collection = $database->collections->where("document_id", $collection_id)->first();
-        if(!$collection){
+        if (!$collection) {
             return $this->errorResponse("Collection not found", null, 404);
         }
 
@@ -57,26 +61,27 @@ class DocumentController extends Controller{
 
         $db = DB::connection("user_connection");
 
-        try{
+        try {
             $document = $db->table($collection->name)->where('id', $id)->first();
-            if($document){
+            if ($document) {
                 return $this->successResponse($document);
-            }else{
+            } else {
                 return $this->errorResponse("Document not found", null, 404);
             }
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             return $this->errorResponse("Error fetching document: " . $e->getMessage(), null, 500);
         }
     }
 
-    public function store(string $database_id, string $collection_id){
+    public function store(string $database_id, string $collection_id)
+    {
         $database = Database::where("document_id", $database_id)->first();
-        if(!$database){
+        if (!$database) {
             return $this->errorResponse("Database not found", null, 404);
         }
 
         $collection = $database->collections->where("document_id", $collection_id)->first();
-        if(!$collection){
+        if (!$collection) {
             return $this->errorResponse("Collection not found", null, 404);
         }
 
@@ -90,35 +95,38 @@ class DocumentController extends Controller{
 
         $data = request()->all();
 
-        try{
-            if(is_array($data)){
+        try {
+            if (is_array($data)) {
                 $inserted_ids = [];
-                foreach($data as $doc){
+                foreach ($data as $doc) {
                     $inserted_ids[] = $db->table($collection->name)->insertGetId(array_merge(
                         $doc,
                         ['created_at' => now(), 'updated_at' => now()]
                     ));
                 }
+                $this->logAudit('create', 'document', implode(',', $inserted_ids), $collection->name, null, request());
                 return $this->successResponse(["ids" => $inserted_ids], "Documents inserted successfully");
             }
             $inserted_id = $db->table($collection->name)->insertGetId(array_merge(
                 $data,
                 ['created_at' => now(), 'updated_at' => now()]
             ));
+            $this->logAudit('create', 'document', (string) $inserted_id, $collection->name, null, request());
             return $this->successResponse(["id" => $inserted_id], "Document inserted successfully");
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             return $this->errorResponse("Error inserting document: " . $e->getMessage(), null, 500);
         }
     }
 
-    public function update(string $database_id, string $collection_id, string $document_id){
+    public function update(string $database_id, string $collection_id, string $document_id)
+    {
         $database = Database::where("document_id", $database_id)->first();
-        if(!$database){
+        if (!$database) {
             return $this->errorResponse("Database not found", null, 404);
         }
 
         $collection = $database->collections->where("document_id", $collection_id)->first();
-        if(!$collection){
+        if (!$collection) {
             return $this->errorResponse("Collection not found", null, 404);
         }
 
@@ -132,29 +140,31 @@ class DocumentController extends Controller{
 
         $data = request()->all();
 
-        try{
+        try {
             $updated = $db->table($collection->name)->where('id', $document_id)->update(array_merge(
                 $data,
                 ['updated_at' => now()]
             ));
-            if($updated){
+            if ($updated) {
+                $this->logAudit('update', 'document', $document_id, $collection->name, $data, request());
                 return $this->successResponse(null, "Document updated successfully");
-            }else{
+            } else {
                 return $this->errorResponse("Document not found or no changes made", null, 404);
             }
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             return $this->errorResponse("Error updating document: " . $e->getMessage(), null, 500);
         }
     }
 
-    public function destroy(string $database_id, string $collection_id, string $document_id){
+    public function destroy(string $database_id, string $collection_id, string $document_id)
+    {
         $database = Database::where("document_id", $database_id)->first();
-        if(!$database){
+        if (!$database) {
             return $this->errorResponse("Database not found", null, 404);
         }
 
         $collection = $database->collections->where("document_id", $collection_id)->first();
-        if(!$collection){
+        if (!$collection) {
             return $this->errorResponse("Collection not found", null, 404);
         }
 
@@ -166,14 +176,15 @@ class DocumentController extends Controller{
 
         $db = DB::connection("user_connection");
 
-        try{
+        try {
             $deleted = $db->table($collection->name)->where('id', $document_id)->delete();
-            if($deleted){
+            if ($deleted) {
+                $this->logAudit('delete', 'document', $document_id, $collection->name, null, request());
                 return $this->successResponse(null, "Document deleted successfully");
-            }else{
+            } else {
                 return $this->errorResponse("Document not found", null, 404);
             }
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             return $this->errorResponse("Error deleting document: " . $e->getMessage(), null, 500);
         }
     }

@@ -4,6 +4,7 @@ use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\DatabaseController;
 use App\Http\Controllers\Helpers\DocumentController;
 use App\Http\Controllers\OpenApiController;
+use App\Http\Controllers\AuditLogController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Session\UserController;
@@ -23,6 +24,8 @@ Route::prefix("auth")->group(function () {
 
 Route::middleware("auth")->group(function () {
     Route::get('/openapi', [OpenApiController::class, 'show']);
+    Route::get('/audit-logs', [AuditLogController::class, 'index']);
+    Route::get("/audit-logs/{resource_id}", [AuditLogController::class, "show"]);
 
     Route::get("/databases", [DatabaseController::class, "show"]);
     Route::post("/databases", [DatabaseController::class, "store"]);

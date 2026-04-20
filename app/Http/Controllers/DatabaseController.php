@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\ApiResponse;
+use App\Helpers\AuditLogHelper;
 use App\Helpers\HttpResponseCode;
 use App\Models\Database;
 use Exception;
@@ -13,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 class DatabaseController extends Controller
 {
 
-    use ApiResponse;
+    use ApiResponse, AuditLogHelper;
 
     // display the list of resources
     public function index(){
@@ -57,6 +58,7 @@ class DatabaseController extends Controller
 
         $database = Database::create($attributes);
         if($database){
+            $this->logAudit('create', 'database', $database->document_id, $database->name, null, request());
             return $this->successResponse($attributes, "Success", HttpResponseCode::CREATED);
         }else{
             return $this->errorResponse("Unable to create database", null, HttpResponseCode::INTERNAL_SERVER_ERROR);
@@ -85,6 +87,8 @@ class DatabaseController extends Controller
         }
 
         $database->delete();
+
+        $this->logAudit('delete', 'database', $database_id, $database_name, null, request());
 
         return $this->successResponse(null, "Database deleted successfully");
     }

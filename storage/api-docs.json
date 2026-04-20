@@ -35,6 +35,53 @@
                 }
             }
         },
+        "/audit-logs": {
+            "get": {
+                "operationId": "auditLog.show",
+                "tags": [
+                    "AuditLog"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Success"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/AuditLog"
+                                            }
+                                        },
+                                        "errors": {
+                                            "type": "null"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data",
+                                        "errors"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/databases/{database_id}/collections": {
             "get": {
                 "operationId": "collection.show",
@@ -2020,6 +2067,75 @@
             }
         },
         "schemas": {
+            "AuditLog": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "user_id": {
+                        "type": "integer"
+                    },
+                    "action": {
+                        "type": "string"
+                    },
+                    "resource_type": {
+                        "type": "string"
+                    },
+                    "resource_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "resource_name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "changes": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "items": {}
+                    },
+                    "ip_address": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "id",
+                    "user_id",
+                    "action",
+                    "resource_type",
+                    "resource_id",
+                    "resource_name",
+                    "changes",
+                    "ip_address",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "AuditLog"
+            },
             "User": {
                 "type": "object",
                 "properties": {
