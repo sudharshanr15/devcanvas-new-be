@@ -5,6 +5,7 @@ use App\Http\Controllers\DatabaseController;
 use App\Http\Controllers\Helpers\DocumentController;
 use App\Http\Controllers\OpenApiController;
 use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\StorageController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Session\UserController;
@@ -26,6 +27,12 @@ Route::middleware("auth")->group(function () {
     Route::get('/openapi', [OpenApiController::class, 'show']);
     Route::get('/audit-logs', [AuditLogController::class, 'index']);
     Route::get("/audit-logs/{resource_id}", [AuditLogController::class, "show"]);
+
+    Route::prefix('storage')->group(function () {
+        Route::post('/files', [StorageController::class, 'upload']);
+        Route::get('/files', [StorageController::class, 'files']);
+        Route::delete('/files', [StorageController::class, 'delete']);
+    });
 
     Route::get("/databases", [DatabaseController::class, "show"]);
     Route::post("/databases", [DatabaseController::class, "store"]);
